@@ -30,7 +30,7 @@ export default async function Home() {
               Connect a Convex project, and start building with a single prompt. No coding required.
             </p>
           </div>
-          <PromptInput />
+          <PromptInput user={user} />
         </div>
       </main>
     </div>

@@ -1,3 +1,4 @@
+import { QueryClientProvider } from '@/components/query-client-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -28,7 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <QueryClientProvider>{children}</QueryClientProvider>
           <Toaster position="top-center" />
         </ThemeProvider>
       </body>
