@@ -3,7 +3,6 @@ import type { User } from 'better-auth'
 import { SendIcon } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
-import { ConnectConvexPopover } from './connect-convex-popover'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
@@ -34,8 +33,7 @@ export function PromptInput({ user }: { user: User | undefined }) {
           }
         }}
       />
-      <div className="flex justify-between">
-        <ConnectConvexPopover />
+      <div className="flex justify-end">
         <Button type="submit" size="icon-sm">
           <SendIcon className="size-4" />
         </Button>

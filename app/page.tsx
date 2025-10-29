@@ -2,10 +2,13 @@ import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getUser } from '@/lib/auth/get-user'
+import { api } from '@/lib/trpc/server'
 import { SparklesIcon } from 'lucide-react'
 
 export default async function Home() {
   const user = await getUser()
+  const hello = await api.hello()
+  console.log(hello)
 
   return (
     <div className="flex min-h-screen flex-col">
