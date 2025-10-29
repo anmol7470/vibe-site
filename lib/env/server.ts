@@ -8,6 +8,8 @@ export const env = createEnv({
     DATABASE_URL: z.url(),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
+    CONVEX_CLIENT_ID: z.string().min(1),
+    CONVEX_CLIENT_SECRET: z.string().min(1),
   },
   experimental__runtimeEnv: process.env,
 })
