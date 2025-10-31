@@ -12,3 +12,4 @@
 - Never create markdown files (`.md`) after you are done. Never!
 - Never cast to any type. Always use correct types.
 - Don't use `process.env` directly. Use `env` from `@/lib/env/server` instead.
+- Write all db queries, mutations, and api logic in `@/trpc` folder under appropriate routers.

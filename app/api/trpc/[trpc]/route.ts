@@ -1,5 +1,5 @@
 import { env } from '@/lib/env'
-import { appRouter, createTRPCContext } from '@/lib/trpc/routes'
+import { appRouter, createTRPCContext } from '@/trpc'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { type NextRequest } from 'next/server'
 

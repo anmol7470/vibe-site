@@ -11,6 +11,7 @@ export function PromptInput({ user }: { user: User | undefined }) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!prompt.trim()) return
 
     if (!user) {
       toast.error('Please sign in to submit a prompt')
@@ -19,7 +20,7 @@ export function PromptInput({ user }: { user: User | undefined }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-input/30 flex flex-col gap-3 rounded-lg border p-3">
+    <form onSubmit={handleSubmit} className="bg-input/20 flex flex-col gap-3 rounded-lg border p-3">
       <Textarea
         autoFocus
         placeholder="Describe the website you want to build..."

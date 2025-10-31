@@ -2,13 +2,10 @@ import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getUser } from '@/lib/auth/get-user'
-import { api } from '@/lib/trpc/server'
 import { SparklesIcon } from 'lucide-react'
 
 export default async function Home() {
   const user = await getUser()
-  const hello = await api.hello()
-  console.log(hello)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -29,9 +26,7 @@ export default async function Home() {
         <div className="w-full max-w-3xl space-y-10">
           <div className="space-y-2 text-center">
             <h2 className="text-4xl font-bold tracking-tight">What do you want to create?</h2>
-            <p className="text-muted-foreground text-md">
-              Connect a Convex project, and start building with a single prompt. No coding required.
-            </p>
+            <p className="text-muted-foreground text-md">Start building with a single prompt. No coding required.</p>
           </div>
           <PromptInput user={user} />
         </div>

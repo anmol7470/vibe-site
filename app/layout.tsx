@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@/components/theme-provider'
 import { TRPCReactProvider } from '@/lib/trpc/react'
+import { Provider as JotaiProvider } from 'jotai'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <JotaiProvider>
+            <TRPCReactProvider>{children}</TRPCReactProvider>
+          </JotaiProvider>
           <Toaster position="top-center" />
         </ThemeProvider>
       </body>

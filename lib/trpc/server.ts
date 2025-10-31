@@ -1,10 +1,10 @@
 import 'server-only'
 
+import { createCaller, createTRPCContext, type AppRouter } from '@/trpc'
 import { createHydrationHelpers } from '@trpc/react-query/rsc'
 import { headers } from 'next/headers'
 import { cache } from 'react'
 import { createQueryClient } from './query-client'
-import { createCaller, createTRPCContext, type AppRouter } from './routes'
 
 const createContext = cache(async () => {
   const heads = new Headers(await headers())
