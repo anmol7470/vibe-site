@@ -2,7 +2,7 @@ import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getUser } from '@/lib/auth/get-user'
-import { SparklesIcon } from 'lucide-react'
+import Image from 'next/image'
 
 export default async function Home() {
   const user = await getUser()
@@ -12,12 +12,12 @@ export default async function Home() {
       <header className="flex h-16 w-full border-b px-4">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
           <div className="flex items-center gap-2">
-            <SparklesIcon className="size-5" />
+            <Image src="/logo.svg" alt="VibeSite" width={30} height={30} className="rounded-full" />
             <h1 className="text-xl font-semibold">VibeSite</h1>
           </div>
           <div className="flex items-center gap-2">
-            <AuthButton user={user} />
             <ThemeToggle />
+            <AuthButton user={user} />
           </div>
         </div>
       </header>
@@ -28,7 +28,11 @@ export default async function Home() {
             <h2 className="text-4xl font-bold tracking-tight">What do you want to create?</h2>
             <p className="text-muted-foreground text-md">Start building with a single prompt. No coding required.</p>
           </div>
-          <PromptInput user={user} />
+          <PromptInput
+            user={user}
+            placeholder="Describe the website you want to build..."
+            className="max-h-40 min-h-20"
+          />
         </div>
       </main>
     </div>

@@ -1,4 +1,5 @@
 'use client'
+
 import { authClient } from '@/lib/auth/client'
 import type { User } from 'better-auth'
 import { KeyIcon, LogOutIcon } from 'lucide-react'
@@ -19,7 +20,7 @@ export function AuthButton({ user }: { user: User | undefined }) {
       <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Image src={user.image || ''} alt={user.name || 'User'} width={32} height={32} className="rounded-full" />
+            <Image src={user.image || ''} alt={user.name || 'User'} width={30} height={30} className="rounded-full" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setIsApiKeyDialogOpen(true)}>

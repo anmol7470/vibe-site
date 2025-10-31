@@ -1,3 +1,4 @@
+import { ProjectContent } from '@/components/project-content'
 import { getUser } from '@/lib/auth/get-user'
 import { redirect } from 'next/navigation'
 
@@ -9,5 +10,5 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     redirect('/')
   }
 
-  return <div>ProjectPage {id}</div>
+  return <ProjectContent user={user} />
 }
