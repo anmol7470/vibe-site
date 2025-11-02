@@ -1,24 +1,44 @@
 'use client'
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { apiKeyAtom } from '@/lib/atoms/api-key'
 import { RouterOutputs } from '@/lib/trpc/react'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import type { User } from 'better-auth'
+import { useAtomValue } from 'jotai'
 import { useRef, useState } from 'react'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from './ai-elements/web-preview'
 import { Chat } from './chat'
 import { ProjectHeader } from './project-header'
 
-type Project = RouterOutputs['project']['getProject']
+export type Project = NonNullable<RouterOutputs['project']['getProject']>
 
 export function ProjectContent({ user, project }: { user: User; project: Project }) {
-  console.log('project', project)
+  const apiKey = useAtomValue(apiKeyAtom)
   const panelRef = useRef<ImperativePanelHandle>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [prompt, setPrompt] = useState('')
+
+  const { messages, sendMessage, status } = useChat({
+    id: project.id,
+    messages: project.messages,
+    transport: new DefaultChatTransport({
+      api: '/api/generate',
+      headers: () => ({
+        'x-api-key': apiKey,
+      }),
+    }),
+  })
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+  }
 
   return (
     <main className="flex h-screen flex-col">
-      <ProjectHeader user={user} isCollapsed={isCollapsed} panelRef={panelRef} />
+      <ProjectHeader user={user} isCollapsed={isCollapsed} panelRef={panelRef} project={project} />
       <ResizablePanelGroup direction="horizontal" className="w-full flex-1">
         <ResizablePanel
           ref={panelRef}
@@ -30,7 +50,7 @@ export function ProjectContent({ user, project }: { user: User; project: Project
           onExpand={() => setIsCollapsed(false)}
           className="hidden md:flex"
         >
-          <Chat />
+          <Chat prompt={prompt} setPrompt={setPrompt} handleSubmit={handleSubmit} />
         </ResizablePanel>
         <ResizableHandle className="hidden md:flex" />
         <ResizablePanel defaultSize={70}>

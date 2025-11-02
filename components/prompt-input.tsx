@@ -2,19 +2,19 @@
 
 import { cn } from '@/lib/utils'
 import { ImagesIcon, SendIcon } from 'lucide-react'
-import { useState } from 'react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 type PromptInputProps = {
   placeholder: string
   className?: string
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  prompt: string
+  setPrompt: (prompt: string) => void
 }
 
-export function PromptInput({ placeholder, className, handleSubmit }: PromptInputProps) {
-  const [prompt, setPrompt] = useState('')
-
+export function PromptInput({ placeholder, className, handleSubmit, prompt, setPrompt }: PromptInputProps) {
   return (
     <form onSubmit={handleSubmit} className="bg-input/20 flex flex-col gap-1 rounded-lg border p-3">
       <Textarea
@@ -34,9 +34,14 @@ export function PromptInput({ placeholder, className, handleSubmit }: PromptInpu
         }}
       />
       <div className="flex justify-between">
-        <Button type="button" variant="outline" size="icon-sm">
-          <ImagesIcon className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button type="button" variant="outline" size="icon-sm">
+              <ImagesIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Add images to your prompt</TooltipContent>
+        </Tooltip>
         <Button type="submit" size="icon-sm">
           <SendIcon className="size-4" />
         </Button>

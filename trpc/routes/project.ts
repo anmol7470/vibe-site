@@ -1,24 +1,39 @@
-import { project as projectTable } from '@/lib/db/schema'
+import { projectMessages as projectMessagesTable, project as projectTable } from '@/lib/db/schema'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import type { UIMessage } from 'ai'
 import { convertToModelMessages, generateText } from 'ai'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '../init'
 
 export const projectRouter = createTRPCRouter({
-  createProject: protectedProcedure.mutation(async ({ ctx }) => {
-    const id = nanoid()
+  createProject: protectedProcedure
+    .input(
+      z.object({
+        prompt: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = nanoid()
 
-    await ctx.db.insert(projectTable).values({
-      id,
-      name: 'New Project',
-      userId: ctx.user.id,
-    })
+      await ctx.db.transaction(async (tx) => {
+        tx.insert(projectTable).values({
+          id,
+          name: 'New Project',
+          userId: ctx.user.id,
+        })
 
-    return id
-  }),
+        tx.insert(projectMessagesTable).values({
+          id: nanoid(),
+          projectId: id,
+          role: 'user',
+          parts: [{ type: 'text', text: input.prompt }],
+        })
+      })
+
+      return id
+    }),
 
   generateProjectName: protectedProcedure
     .input(
@@ -38,19 +53,18 @@ export const projectRouter = createTRPCRouter({
         messages: convertToModelMessages([input.userMessage]),
       })
 
-      if (result.text.length === 0) {
-        return 'New Project' // just return default name if no name generated
-      }
+      // If no title generated or generation fails then keep default name
+      const title = result.text.trim().length > 0 ? result.text : 'New Project'
 
       await ctx.db
         .update(projectTable)
         .set({
-          name: result.text,
+          name: title,
           isNameGenerated: true,
         })
         .where(eq(projectTable.id, input.projectId))
 
-      return result.text
+      return title
     }),
 
   getProject: protectedProcedure
@@ -60,12 +74,18 @@ export const projectRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const [project] = await ctx.db
-        .select()
-        .from(projectTable)
-        .where(and(eq(projectTable.id, input.projectId), eq(projectTable.userId, ctx.user.id)))
-        .limit(1)
-
-      return project
+      return await ctx.db.query.project.findFirst({
+        where: and(eq(projectTable.id, input.projectId), eq(projectTable.userId, ctx.user.id)),
+        with: {
+          messages: {
+            columns: {
+              id: true,
+              role: true,
+              parts: true,
+            },
+            orderBy: desc(projectMessagesTable.createdAt),
+          },
+        },
+      })
     }),
 })

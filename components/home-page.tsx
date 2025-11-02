@@ -7,9 +7,11 @@ import { api } from '@/lib/trpc/react'
 import type { User } from 'better-auth'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export function HomePage({ user }: { user: User | undefined }) {
+  const [prompt, setPrompt] = useState('')
   const router = useRouter()
   const createProject = api.project.createProject.useMutation()
 
@@ -22,7 +24,7 @@ export function HomePage({ user }: { user: User | undefined }) {
     }
 
     toast
-      .promise(createProject.mutateAsync(), {
+      .promise(createProject.mutateAsync({ prompt }), {
         loading: 'Creating project...',
         success: 'Project created successfully',
         error: 'Failed to create project',
@@ -57,6 +59,8 @@ export function HomePage({ user }: { user: User | undefined }) {
             placeholder="Describe the website you want to build..."
             className="max-h-40 min-h-20"
             handleSubmit={handleSubmit}
+            prompt={prompt}
+            setPrompt={setPrompt}
           />
         </div>
       </main>

@@ -22,6 +22,13 @@
       "when": 1762062498949,
       "tag": "0002_absurd_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762064830044,
+      "tag": "0003_bouncy_rhino",
+      "breakpoints": true
     }
   ]
 }
