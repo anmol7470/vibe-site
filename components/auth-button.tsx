@@ -53,6 +53,7 @@ export function AuthButton({ user }: { user: User | undefined }) {
 
   return (
     <Button
+      size="sm"
       onClick={async () => {
         await authClient.signIn.social({
           provider: 'google',

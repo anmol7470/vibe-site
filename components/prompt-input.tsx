@@ -1,51 +1,19 @@
 'use client'
 
-import { pathnameAtom, projectIdAtom } from '@/lib/atoms/project-id'
 import { cn } from '@/lib/utils'
-import type { User } from 'better-auth'
-import { useAtom, useAtomValue } from 'jotai'
 import { ImagesIcon, SendIcon } from 'lucide-react'
-import { nanoid } from 'nanoid'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
+import { useState } from 'react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
 type PromptInputProps = {
-  user: User | undefined
   placeholder: string
   className?: string
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
-export function PromptInput({ user, placeholder, className }: PromptInputProps) {
+export function PromptInput({ placeholder, className, handleSubmit }: PromptInputProps) {
   const [prompt, setPrompt] = useState('')
-  const router = useRouter()
-  const pathname = usePathname()
-  const [, setPathname] = useAtom(pathnameAtom)
-  const currentProjectId = useAtomValue(projectIdAtom)
-
-  useEffect(() => {
-    setPathname(pathname)
-  }, [pathname, setPathname])
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!prompt.trim()) return
-
-    if (!user) {
-      toast.error('Please sign in to submit a prompt')
-      return
-    }
-
-    // Start a new project
-    if (!currentProjectId) {
-      const id = nanoid()
-      router.push(`/project/${id}`)
-    }
-
-    // Submit a prompt to the current project
-  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-input/20 flex flex-col gap-1 rounded-lg border p-3">
