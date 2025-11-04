@@ -3,40 +3,17 @@
 import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { api } from '@/lib/trpc/react'
 import type { User } from 'better-auth'
 import Image from 'next/image'
-import { toast } from 'react-hot-toast'
 
 type HomePageProps = {
   user: User | undefined
   prompt: string
   setPrompt: (prompt: string) => void
-  onProjectCreated: (projectId: string) => void
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
-export function HomePage({ user, prompt, setPrompt, onProjectCreated }: HomePageProps) {
-  const createProject = api.project.createProject.useMutation()
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!user) {
-      toast.error('Please sign in to submit a prompt')
-      return
-    }
-
-    toast
-      .promise(createProject.mutateAsync({ prompt }), {
-        loading: 'Creating project...',
-        success: 'Project created successfully',
-        error: 'Failed to create project',
-      })
-      .then((id) => {
-        onProjectCreated(id)
-      })
-  }
-
+export function HomePage({ user, prompt, setPrompt, handleSubmit }: HomePageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex h-16 w-full border-b px-4">

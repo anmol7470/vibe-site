@@ -1,6 +1,13 @@
 import { api } from '@/lib/trpc/server'
 import { createAnthropic } from '@ai-sdk/anthropic'
-import { Experimental_Agent as Agent, convertToModelMessages, stepCountIs, UIMessage } from 'ai'
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  stepCountIs,
+  streamText,
+  type UIMessage,
+} from 'ai'
 
 export async function POST(req: Request) {
   const { messages, projectId, isNewProject }: { messages: UIMessage[]; projectId: string; isNewProject: boolean } =
@@ -11,28 +18,46 @@ export async function POST(req: Request) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  // Generate project name in the background and send back to client if new project.
-  if (isNewProject) {
-    api.project.generateProjectName({
-      projectId,
-      apiKey,
-      userMessage: messages[0],
-    })
-  }
-
   const anthropic = createAnthropic({
     apiKey,
   })
 
-  const codingAgent = new Agent({
-    model: anthropic('claude-sonnet-4-5'),
-    // Add tools here.
-    stopWhen: stepCountIs(30),
+  const stream = createUIMessageStream<UIMessage>({
+    execute: async ({ writer }) => {
+      // Generate project name in the background and send back to client if new project.
+      let name = 'New Project'
+      if (isNewProject) {
+        api.project
+          .generateProjectName({
+            projectId,
+            apiKey,
+            userMessage: messages[0],
+          })
+          .then((n) => {
+            name = n
+          })
+          .catch((error) => {
+            console.error('Error generating project name', error)
+          })
+      }
+
+      const result = streamText({
+        model: anthropic('claude-sonnet-4-5'),
+        stopWhen: stepCountIs(30),
+        messages: convertToModelMessages(messages),
+      })
+
+      if (isNewProject && name !== 'New Project') {
+        writer.write({
+          type: 'data-project-name',
+          data: name,
+          transient: true,
+        })
+      }
+
+      writer.merge(result.toUIMessageStream())
+    },
   })
 
-  const result = await codingAgent.stream({
-    messages: convertToModelMessages(messages),
-  })
-
-  return result.toUIMessageStreamResponse()
+  return createUIMessageStreamResponse({ stream })
 }

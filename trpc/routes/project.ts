@@ -1,3 +1,4 @@
+import { generateProjectNamePrompt } from '@/ai/prompts'
 import { projectMessages as projectMessagesTable, project as projectTable } from '@/lib/db/schema'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import type { UIMessage } from 'ai'
@@ -11,26 +12,23 @@ export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
     .input(
       z.object({
+        newProjectId: z.string().min(1),
         prompt: z.string().min(1),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const id = nanoid()
-
       await ctx.db.insert(projectTable).values({
-        id,
+        id: input.newProjectId,
         name: 'New Project',
         userId: ctx.user.id,
       })
 
       await ctx.db.insert(projectMessagesTable).values({
         id: nanoid(),
-        projectId: id,
+        projectId: input.newProjectId,
         role: 'user',
         parts: [{ type: 'text', text: input.prompt }],
       })
-
-      return id
     }),
 
   generateProjectName: protectedProcedure
@@ -48,6 +46,7 @@ export const projectRouter = createTRPCRouter({
 
       const result = await generateText({
         model: anthropic('claude-haiku-4-5'),
+        system: generateProjectNamePrompt,
         messages: convertToModelMessages([input.userMessage]),
       })
 

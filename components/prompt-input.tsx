@@ -1,7 +1,9 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ImagesIcon, SendIcon } from 'lucide-react'
+import { UseChatHelpers } from '@ai-sdk/react'
+import type { UIMessage } from 'ai'
+import { BoxIcon, ImagesIcon, SendIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
@@ -12,9 +14,12 @@ type PromptInputProps = {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   prompt: string
   setPrompt: (prompt: string) => void
+  status?: UseChatHelpers<UIMessage>['status']
 }
 
-export function PromptInput({ placeholder, className, handleSubmit, prompt, setPrompt }: PromptInputProps) {
+export function PromptInput({ placeholder, className, handleSubmit, prompt, setPrompt, status }: PromptInputProps) {
+  const isStreaming = status === 'streaming' || status === 'submitted'
+
   return (
     <form onSubmit={handleSubmit} className="bg-input/20 flex flex-col gap-1 rounded-lg border p-3">
       <Textarea
@@ -42,8 +47,8 @@ export function PromptInput({ placeholder, className, handleSubmit, prompt, setP
           </TooltipTrigger>
           <TooltipContent>Add images to your prompt</TooltipContent>
         </Tooltip>
-        <Button type="submit" size="icon-sm">
-          <SendIcon className="size-4" />
+        <Button type="submit" size="icon-sm" disabled={isStreaming}>
+          {isStreaming ? <BoxIcon className="size-4" /> : <SendIcon className="size-4" />}
         </Button>
       </div>
     </form>

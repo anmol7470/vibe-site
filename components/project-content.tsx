@@ -2,6 +2,8 @@
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { RouterOutputs } from '@/lib/trpc/react'
+import { UseChatHelpers } from '@ai-sdk/react'
+import type { UIMessage } from 'ai'
 import type { User } from 'better-auth'
 import { useRef, useState } from 'react'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
@@ -16,9 +18,11 @@ type ProjectContentProps = {
   project: Project
   prompt: string
   setPrompt: (prompt: string) => void
+  messages: UIMessage[]
+  status: UseChatHelpers<UIMessage>['status']
 }
 
-export function ProjectContent({ user, project, prompt, setPrompt }: ProjectContentProps) {
+export function ProjectContent({ user, project, prompt, setPrompt, messages, status }: ProjectContentProps) {
   const panelRef = useRef<ImperativePanelHandle>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -40,7 +44,7 @@ export function ProjectContent({ user, project, prompt, setPrompt }: ProjectCont
           onExpand={() => setIsCollapsed(false)}
           className="hidden md:flex"
         >
-          <Chat prompt={prompt} setPrompt={setPrompt} handleSubmit={handleSubmit} />
+          <Chat prompt={prompt} setPrompt={setPrompt} handleSubmit={handleSubmit} messages={messages} status={status} />
         </ResizablePanel>
         <ResizableHandle className="hidden md:flex" />
         <ResizablePanel defaultSize={70}>
