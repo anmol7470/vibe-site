@@ -1,12 +1,8 @@
 'use client'
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { apiKeyAtom } from '@/lib/atoms/api-key'
 import { RouterOutputs } from '@/lib/trpc/react'
-import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
 import type { User } from 'better-auth'
-import { useAtomValue } from 'jotai'
 import { useRef, useState } from 'react'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from './ai-elements/web-preview'
@@ -15,22 +11,16 @@ import { ProjectHeader } from './project-header'
 
 export type Project = NonNullable<RouterOutputs['project']['getProject']>
 
-export function ProjectContent({ user, project }: { user: User; project: Project }) {
-  const apiKey = useAtomValue(apiKeyAtom)
+type ProjectContentProps = {
+  user: User
+  project: Project
+  prompt: string
+  setPrompt: (prompt: string) => void
+}
+
+export function ProjectContent({ user, project, prompt, setPrompt }: ProjectContentProps) {
   const panelRef = useRef<ImperativePanelHandle>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [prompt, setPrompt] = useState('')
-
-  const { messages, sendMessage, status } = useChat({
-    id: project.id,
-    messages: project.messages,
-    transport: new DefaultChatTransport({
-      api: '/api/generate',
-      headers: () => ({
-        'x-api-key': apiKey,
-      }),
-    }),
-  })
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

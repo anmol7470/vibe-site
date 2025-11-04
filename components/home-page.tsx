@@ -4,14 +4,20 @@ import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { api } from '@/lib/trpc/react'
+import { UIMessage, UseChatHelpers } from '@ai-sdk/react'
 import type { User } from 'better-auth'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 
-export function HomePage({ user }: { user: User | undefined }) {
-  const [prompt, setPrompt] = useState('')
+type HomePageProps = {
+  user: User | undefined
+  prompt: string
+  setPrompt: (prompt: string) => void
+  sendMessage: UseChatHelpers<UIMessage>['sendMessage']
+}
+
+export function HomePage({ user, prompt, setPrompt, sendMessage }: HomePageProps) {
   const router = useRouter()
   const createProject = api.project.createProject.useMutation()
 
@@ -30,7 +36,12 @@ export function HomePage({ user }: { user: User | undefined }) {
         error: 'Failed to create project',
       })
       .then((id) => {
-        router.push(`/project/${id}`)
+        // router.push(`/project/${id}`)
+        window.history.replaceState(null, '', `/project/${id}`)
+        // sendMessage({
+        //   text: prompt,
+        // })
+        setPrompt('')
       })
   }
 

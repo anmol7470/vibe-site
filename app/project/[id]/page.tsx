@@ -1,4 +1,4 @@
-import { ProjectContent } from '@/components/project-content'
+import { AppContainer } from '@/components/app-container'
 import { getUser } from '@/lib/auth/get-user'
 import { api, HydrateClient } from '@/lib/trpc/server'
 import { redirect } from 'next/navigation'
@@ -19,7 +19,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   return (
     <HydrateClient>
-      <ProjectContent user={user} project={project} />
+      <AppContainer user={user} project={project} />
     </HydrateClient>
   )
 }

@@ -17,19 +17,17 @@ export const projectRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const id = nanoid()
 
-      await ctx.db.transaction(async (tx) => {
-        tx.insert(projectTable).values({
-          id,
-          name: 'New Project',
-          userId: ctx.user.id,
-        })
+      await ctx.db.insert(projectTable).values({
+        id,
+        name: 'New Project',
+        userId: ctx.user.id,
+      })
 
-        tx.insert(projectMessagesTable).values({
-          id: nanoid(),
-          projectId: id,
-          role: 'user',
-          parts: [{ type: 'text', text: input.prompt }],
-        })
+      await ctx.db.insert(projectMessagesTable).values({
+        id: nanoid(),
+        projectId: id,
+        role: 'user',
+        parts: [{ type: 'text', text: input.prompt }],
       })
 
       return id
