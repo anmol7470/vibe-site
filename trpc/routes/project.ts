@@ -1,4 +1,4 @@
-import { generateProjectNamePrompt } from '@/ai/prompts'
+import { generateProjectNamePrompt } from '@/lib/ai/prompts'
 import { projectMessages as projectMessagesTable, project as projectTable } from '@/lib/db/schema'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import type { UIMessage } from 'ai'

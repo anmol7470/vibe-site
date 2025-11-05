@@ -27,7 +27,6 @@ export function AppContainer({ user, project }: AppContainerProps) {
   const setProjectIdAtom = useSetAtom(projectIdAtom)
   const [prompt, setPrompt] = useState('')
 
-  // Derive projectId from pathname (e.g., /project/abc123 -> abc123)
   const urlProjectId = pathname.split('/project/')[1] ?? ''
   const [projectId, setProjectId] = useState(() => urlProjectId || nanoid())
 
@@ -43,7 +42,6 @@ export function AppContainer({ user, project }: AppContainerProps) {
     }
   }, [urlProjectId])
 
-  // Set the projectId atom based on projectId
   useEffect(() => {
     setProjectIdAtom(projectId)
   }, [projectId, setProjectIdAtom])
@@ -54,8 +52,13 @@ export function AppContainer({ user, project }: AppContainerProps) {
     return !!(project || urlProjectId)
   })
 
-  // Temporary project object for when we create a new project
-  const [tempProject, setTempProject] = useState<Project | null>(null)
+  const [currentProject, setCurrentProject] = useState<Project | null>(project || null)
+
+  useEffect(() => {
+    if (project) {
+      setCurrentProject(project)
+    }
+  }, [project])
 
   const { messages, sendMessage, status } = useChat({
     id: projectId,
@@ -66,6 +69,19 @@ export function AppContainer({ user, project }: AppContainerProps) {
         'x-api-key': apiKey,
       }),
     }),
+    onData: (dataPart) => {
+      console.log('dataPart', dataPart)
+      if (dataPart.type === 'data-project-name') {
+        setCurrentProject((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            name: dataPart.data as string,
+            isNameGenerated: true,
+          }
+        })
+      }
+    },
   })
 
   const createProject = api.project.createProject.useMutation()
@@ -85,7 +101,7 @@ export function AppContainer({ user, project }: AppContainerProps) {
         error: 'Failed to create project',
       })
       .then(() => {
-        const newTempProject: Project = {
+        const newProject: Project = {
           id: projectId,
           name: 'New Project',
           isNameGenerated: false,
@@ -95,21 +111,27 @@ export function AppContainer({ user, project }: AppContainerProps) {
           messages,
         }
 
-        setTempProject(newTempProject)
+        setCurrentProject(newProject)
         window.history.pushState(null, '', `/project/${projectId}`)
         setIsProjectMode(true)
 
-        sendMessage({
-          text: prompt,
-        })
+        sendMessage(
+          {
+            text: prompt,
+          },
+          {
+            body: {
+              projectId,
+              isNewProject: true,
+            },
+          }
+        )
         setPrompt('')
       })
   }
 
   // Show ProjectContent if we're in project mode and have a user
   if (isProjectMode && user) {
-    // Use the actual project from server if available, otherwise use temp project
-    const currentProject = project || tempProject
     if (!currentProject) {
       // Fallback: if somehow we're in project mode but have no project, return to HomePage
       return <HomePage user={user} prompt={prompt} setPrompt={setPrompt} handleSubmit={handleCreateNewProject} />

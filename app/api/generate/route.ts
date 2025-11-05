@@ -8,10 +8,23 @@ import {
   streamText,
   type UIMessage,
 } from 'ai'
+import * as z from 'zod'
+
+const requestSchema = z.object({
+  messages: z.custom<UIMessage[]>(),
+  projectId: z.string().min(1),
+  isNewProject: z.boolean(),
+})
 
 export async function POST(req: Request) {
-  const { messages, projectId, isNewProject }: { messages: UIMessage[]; projectId: string; isNewProject: boolean } =
-    await req.json()
+  const parsedBody = await requestSchema.safeParseAsync(await req.json())
+
+  if (!parsedBody.success) {
+    return new Response('Invalid request', { status: 400 })
+  }
+
+  const { messages, projectId, isNewProject } = parsedBody.data
+
   const apiKey = req.headers.get('x-api-key')
 
   if (!apiKey) {
@@ -24,8 +37,7 @@ export async function POST(req: Request) {
 
   const stream = createUIMessageStream<UIMessage>({
     execute: async ({ writer }) => {
-      // Generate project name in the background and send back to client if new project.
-      let name = 'New Project'
+      // Generate project name and send to client if new project.
       if (isNewProject) {
         api.project
           .generateProjectName({
@@ -33,8 +45,12 @@ export async function POST(req: Request) {
             apiKey,
             userMessage: messages[0],
           })
-          .then((n) => {
-            name = n
+          .then((name) => {
+            writer.write({
+              type: 'data-project-name',
+              data: name,
+              transient: true,
+            })
           })
           .catch((error) => {
             console.error('Error generating project name', error)
@@ -43,17 +59,9 @@ export async function POST(req: Request) {
 
       const result = streamText({
         model: anthropic('claude-sonnet-4-5'),
-        stopWhen: stepCountIs(30),
+        stopWhen: stepCountIs(20),
         messages: convertToModelMessages(messages),
       })
-
-      if (isNewProject && name !== 'New Project') {
-        writer.write({
-          type: 'data-project-name',
-          data: name,
-          transient: true,
-        })
-      }
 
       writer.merge(result.toUIMessageStream())
     },
