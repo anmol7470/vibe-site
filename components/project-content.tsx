@@ -1,8 +1,8 @@
 'use client'
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { RouterOutputs } from '@/lib/trpc/react'
-import { UseChatHelpers } from '@ai-sdk/react'
+import type { RouterOutputs } from '@/lib/trpc/react'
+import type { UseChatHelpers } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
 import type { User } from 'better-auth'
 import { useRef, useState } from 'react'

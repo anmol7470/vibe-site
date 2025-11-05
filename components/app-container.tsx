@@ -2,7 +2,7 @@
 
 import { apiKeyAtom } from '@/lib/atoms/api-key'
 import { projectIdAtom } from '@/lib/atoms/project-id'
-import { api, RouterOutputs } from '@/lib/trpc/react'
+import { api, type RouterOutputs } from '@/lib/trpc/react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import type { User } from 'better-auth'
@@ -70,7 +70,7 @@ export function AppContainer({ user, project }: AppContainerProps) {
       }),
     }),
     onData: (dataPart) => {
-      console.log('dataPart', dataPart)
+      // Update project name in the UI once generated and it comes through in the stream.
       if (dataPart.type === 'data-project-name') {
         setCurrentProject((prev) => {
           if (!prev) return prev

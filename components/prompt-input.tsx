@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { UseChatHelpers } from '@ai-sdk/react'
+import type { UseChatHelpers } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
 import { BoxIcon, ImagesIcon, SendIcon } from 'lucide-react'
 import { Button } from './ui/button'
