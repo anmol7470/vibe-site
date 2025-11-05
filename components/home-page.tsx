@@ -2,7 +2,6 @@
 
 import { AuthButton } from '@/components/auth-button'
 import { PromptInput } from '@/components/prompt-input'
-import { ThemeToggle } from '@/components/theme-toggle'
 import type { User } from 'better-auth'
 import Image from 'next/image'
 
@@ -23,7 +22,6 @@ export function HomePage({ user, prompt, setPrompt, handleSubmit }: HomePageProp
             <h1 className="text-xl font-semibold">VibeSite</h1>
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <AuthButton user={user} />
           </div>
         </div>

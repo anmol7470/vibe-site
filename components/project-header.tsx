@@ -1,12 +1,18 @@
 import type { User } from 'better-auth'
-import { PanelLeftIcon } from 'lucide-react'
+import { CopyIcon, PanelLeftIcon, PencilIcon, SettingsIcon, ShareIcon, TrashIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 import { AuthButton } from './auth-button'
 import type { Project } from './project-content'
-import { ThemeToggle } from './theme-toggle'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 import { Skeleton } from './ui/skeleton'
 
 type ProjectHeaderProps = {
@@ -36,7 +42,41 @@ export function ProjectHeader({ user, isCollapsed, panelRef, project }: ProjectH
       </div>
 
       <div className="flex items-center gap-2">
-        <ThemeToggle />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon-sm">
+              <SettingsIcon className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <PencilIcon className="size-4" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <CopyIcon className="size-4" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <ShareIcon className="size-4" />
+              Share
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Image src="/GitHub.svg" alt="GitHub" width={18} height={18} className="dark:invert" />
+              Connect GitHub
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Image src="/Convex.svg" alt="Convex" width={18} height={18} />
+              Connect Convex
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">
+              <TrashIcon className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <AuthButton user={user} />
       </div>
     </header>

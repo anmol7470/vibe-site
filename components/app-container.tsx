@@ -94,6 +94,11 @@ export function AppContainer({ user, project }: AppContainerProps) {
       return
     }
 
+    if (!apiKey) {
+      toast.error('No API key set')
+      return
+    }
+
     toast
       .promise(createProject.mutateAsync({ newProjectId: projectId, prompt }), {
         loading: 'Creating project...',

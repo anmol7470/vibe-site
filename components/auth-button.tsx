@@ -2,18 +2,30 @@
 
 import { authClient } from '@/lib/auth/client'
 import type { User } from 'better-auth'
-import { KeyIcon, LogOutIcon } from 'lucide-react'
+import { KeyIcon, LogOutIcon, MonitorIcon, MoonIcon, SunIcon, SunMoonIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { ApiKeyDialog } from './api-key-dialog'
 import { Button } from './ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 export function AuthButton({ user }: { user: User | undefined }) {
   const router = useRouter()
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false)
+  const { setTheme } = useTheme()
 
   if (user) {
     return (
@@ -22,11 +34,39 @@ export function AuthButton({ user }: { user: User | undefined }) {
           <DropdownMenuTrigger asChild>
             <Image src={user.image || ''} alt={user.name || 'User'} width={30} height={30} className="rounded-full" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm leading-none font-medium">{user.name}</p>
+                <p className="text-muted-foreground text-xs leading-none">{user.email}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setIsApiKeyDialogOpen(true)}>
               <KeyIcon className="size-4" />
               Configure API Key
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <SunMoonIcon className="size-4" />
+                Toggle theme
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setTheme('light')}>
+                  <SunIcon className="size-4" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                  <MoonIcon className="size-4" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')}>
+                  <MonitorIcon className="size-4" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
                 await authClient.signOut({

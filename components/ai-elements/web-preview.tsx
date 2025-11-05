@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, CodeIcon, ExternalLinkIcon, EyeIcon, RefreshCwIcon } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { createContext, useContext, useEffect, useState } from 'react'
 
@@ -14,6 +15,8 @@ export type WebPreviewContextValue = {
   setUrl: (url: string) => void
   consoleOpen: boolean
   setConsoleOpen: (open: boolean) => void
+  viewMode: 'code' | 'preview'
+  setViewMode: (mode: 'code' | 'preview') => void
 }
 
 const WebPreviewContext = createContext<WebPreviewContextValue | null>(null)
@@ -34,6 +37,7 @@ export type WebPreviewProps = ComponentProps<'div'> & {
 export const WebPreview = ({ className, children, defaultUrl = '', onUrlChange, ...props }: WebPreviewProps) => {
   const [url, setUrl] = useState(defaultUrl)
   const [consoleOpen, setConsoleOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'code' | 'preview'>('preview')
 
   const handleUrlChange = (newUrl: string) => {
     setUrl(newUrl)
@@ -45,6 +49,8 @@ export const WebPreview = ({ className, children, defaultUrl = '', onUrlChange, 
     setUrl: handleUrlChange,
     consoleOpen,
     setConsoleOpen,
+    viewMode,
+    setViewMode,
   }
 
   return (
@@ -61,11 +67,44 @@ export const WebPreview = ({ className, children, defaultUrl = '', onUrlChange, 
 
 export type WebPreviewNavigationProps = ComponentProps<'div'>
 
-export const WebPreviewNavigation = ({ className, children, ...props }: WebPreviewNavigationProps) => (
-  <div className={cn('flex items-center gap-1 border-b p-2', className)} {...props}>
-    {children}
-  </div>
-)
+export const WebPreviewNavigation = ({ className, ...props }: WebPreviewNavigationProps) => {
+  const { url, setUrl, viewMode, setViewMode } = useWebPreview()
+
+  const handleRefresh = () => {
+    // Trigger iframe reload by setting URL to empty and back
+    const currentUrl = url
+    setUrl('')
+    setTimeout(() => setUrl(currentUrl), 10)
+  }
+
+  const handleOpenExternal = () => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  return (
+    <div className={cn('flex items-center gap-2 border-b p-2', className)} {...props}>
+      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'code' | 'preview')}>
+        <TabsList>
+          <TabsTrigger value="code">
+            <CodeIcon className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="preview">
+            <EyeIcon className="h-4 w-4" />
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <WebPreviewUrl />
+      <WebPreviewNavigationButton onClick={handleRefresh} tooltip="Refresh">
+        <RefreshCwIcon className="h-4 w-4" />
+      </WebPreviewNavigationButton>
+      <WebPreviewNavigationButton onClick={handleOpenExternal} disabled={!url} tooltip="Open in new tab">
+        <ExternalLinkIcon className="h-4 w-4" />
+      </WebPreviewNavigationButton>
+    </div>
+  )
+}
 
 export type WebPreviewNavigationButtonProps = ComponentProps<typeof Button> & {
   tooltip?: string
