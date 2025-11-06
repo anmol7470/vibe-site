@@ -20,15 +20,20 @@ type ProjectContentProps = {
   setPrompt: (prompt: string) => void
   messages: UIMessage[]
   status: UseChatHelpers<UIMessage>['status']
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
-export function ProjectContent({ user, project, prompt, setPrompt, messages, status }: ProjectContentProps) {
+export function ProjectContent({
+  user,
+  project,
+  prompt,
+  setPrompt,
+  messages,
+  status,
+  handleSubmit,
+}: ProjectContentProps) {
   const panelRef = useRef<ImperativePanelHandle>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-  }
 
   return (
     <main className="flex h-screen flex-col">

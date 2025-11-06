@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 import type { UseChatHelpers } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
-import { BoxIcon, ImagesIcon, SendIcon } from 'lucide-react'
+import { ImagesIcon, SendIcon, SquareIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
@@ -48,7 +48,7 @@ export function PromptInput({ placeholder, className, handleSubmit, prompt, setP
           <TooltipContent>Add images to your prompt</TooltipContent>
         </Tooltip>
         <Button type="submit" size="icon-sm" disabled={isStreaming}>
-          {isStreaming ? <BoxIcon className="size-4" /> : <SendIcon className="size-4" />}
+          {isStreaming ? <SquareIcon className="size-4" /> : <SendIcon className="size-4" />}
         </Button>
       </div>
     </form>

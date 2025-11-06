@@ -1,9 +1,11 @@
+import { getUser } from '@/lib/auth/get-user'
 import { api } from '@/lib/trpc/server'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  generateId,
   stepCountIs,
   streamText,
   type UIMessage,
@@ -17,18 +19,35 @@ const requestSchema = z.object({
 })
 
 export async function POST(req: Request) {
+  const user = await getUser()
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   const parsedBody = await requestSchema.safeParseAsync(await req.json())
 
   if (!parsedBody.success) {
-    return new Response('Invalid request', { status: 400 })
+    return new Response(JSON.stringify({ error: 'Invalid request body' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const { messages, projectId, isNewProject } = parsedBody.data
 
+  console.log('messages from body', messages)
+
   const apiKey = req.headers.get('x-api-key')
 
   if (!apiKey) {
-    return new Response('Unauthorized', { status: 401 })
+    return new Response(JSON.stringify({ error: 'No API key provided' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const anthropic = createAnthropic({
@@ -63,7 +82,16 @@ export async function POST(req: Request) {
         messages: convertToModelMessages(messages),
       })
 
-      writer.merge(result.toUIMessageStream())
+      writer.merge(
+        result.toUIMessageStream({
+          originalMessages: messages,
+          generateMessageId: () => generateId(),
+          onFinish: async ({ messages }) => {
+            console.log('messages from onFinish', messages)
+            await api.project.saveMessages({ projectId, messages })
+          },
+        })
+      )
     },
   })
 

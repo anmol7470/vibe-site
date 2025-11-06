@@ -1,14 +1,12 @@
 'use client'
 
+import { useProjectId } from '@/hooks/use-project-id'
 import { apiKeyAtom } from '@/lib/atoms/api-key'
-import { projectIdAtom } from '@/lib/atoms/project-id'
 import { api, type RouterOutputs } from '@/lib/trpc/react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import type { User } from 'better-auth'
-import { useAtomValue, useSetAtom } from 'jotai'
-import { nanoid } from 'nanoid'
-import { usePathname } from 'next/navigation'
+import { useAtomValue } from 'jotai'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { HomePage } from './home-page'
@@ -22,34 +20,13 @@ type AppContainerProps = {
 }
 
 export function AppContainer({ user, project }: AppContainerProps) {
-  const pathname = usePathname()
   const apiKey = useAtomValue(apiKeyAtom)
-  const setProjectIdAtom = useSetAtom(projectIdAtom)
-  const [prompt, setPrompt] = useState('')
-
-  const urlProjectId = pathname.split('/project/')[1] ?? ''
-  const [projectId, setProjectId] = useState(() => urlProjectId || nanoid())
-
-  // Update projectId when URL changes
-  useEffect(() => {
-    if (urlProjectId) {
-      // Navigating to an existing project
-      setProjectId(urlProjectId)
-    } else {
-      // Navigating to home
-      const newId = nanoid()
-      setProjectId(newId)
-    }
-  }, [urlProjectId])
-
-  useEffect(() => {
-    setProjectIdAtom(projectId)
-  }, [projectId, setProjectIdAtom])
+  const projectId = useProjectId()
 
   // Local state to track whether to show ProjectContent (preserves state during transitions)
   const [isProjectMode, setIsProjectMode] = useState(() => {
     // Initialize based on whether we have a project from server OR pathname indicates project route
-    return !!(project || urlProjectId)
+    return !!(project || projectId)
   })
 
   const [currentProject, setCurrentProject] = useState<Project | null>(project || null)
@@ -60,15 +37,18 @@ export function AppContainer({ user, project }: AppContainerProps) {
     }
   }, [project])
 
+  const [prompt, setPrompt] = useState('')
+
   const { messages, sendMessage, status } = useChat({
     id: projectId,
     messages: project?.messages || [],
     transport: new DefaultChatTransport({
       api: '/api/generate',
-      headers: () => ({
-        'x-api-key': apiKey,
-      }),
     }),
+    onError: (error) => {
+      const errorData = JSON.parse(error.message)
+      toast.error(errorData.error || error.message)
+    },
     onData: (dataPart) => {
       // Update project name in the UI once generated and it comes through in the stream.
       if (dataPart.type === 'data-project-name') {
@@ -129,10 +109,30 @@ export function AppContainer({ user, project }: AppContainerProps) {
               projectId,
               isNewProject: true,
             },
+            headers: {
+              'x-api-key': apiKey,
+            },
           }
         )
         setPrompt('')
       })
+  }
+
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    sendMessage(
+      { text: prompt },
+      {
+        body: {
+          projectId,
+          isNewProject: false,
+        },
+        headers: {
+          'x-api-key': apiKey,
+        },
+      }
+    )
+    setPrompt('')
   }
 
   // Show ProjectContent if we're in project mode and have a user
@@ -149,6 +149,7 @@ export function AppContainer({ user, project }: AppContainerProps) {
         setPrompt={setPrompt}
         messages={messages}
         status={status}
+        handleSubmit={handleSendMessage}
       />
     )
   }

@@ -3,7 +3,7 @@ import { projectMessages as projectMessagesTable, project as projectTable } from
 import { createAnthropic } from '@ai-sdk/anthropic'
 import type { UIMessage } from 'ai'
 import { convertToModelMessages, generateText } from 'ai'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '../init'
@@ -80,9 +80,29 @@ export const projectRouter = createTRPCRouter({
               role: true,
               parts: true,
             },
-            orderBy: desc(projectMessagesTable.createdAt),
           },
         },
       })
+    }),
+
+  saveMessages: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1),
+        messages: z.custom<UIMessage[]>(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insert(projectMessagesTable)
+        .values(
+          input.messages.map((message) => ({
+            projectId: input.projectId,
+            id: message.id,
+            role: message.role,
+            parts: message.parts,
+          }))
+        )
+        .onConflictDoNothing()
     }),
 })
