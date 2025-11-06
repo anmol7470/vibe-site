@@ -4,9 +4,12 @@ import { useProjectId } from '@/hooks/use-project-id'
 import { apiKeyAtom } from '@/lib/atoms/api-key'
 import { api, type RouterOutputs } from '@/lib/trpc/react'
 import { useChat } from '@ai-sdk/react'
+import { useQueryClient } from '@tanstack/react-query'
+import { getQueryKey } from '@trpc/react-query'
 import { DefaultChatTransport } from 'ai'
 import type { User } from 'better-auth'
 import { useAtomValue } from 'jotai'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { HomePage } from './home-page'
@@ -16,32 +19,46 @@ type Project = NonNullable<RouterOutputs['project']['getProject']>
 
 type AppContainerProps = {
   user: User | undefined
-  project?: Project
+  serverProjectId: string
 }
 
-export function AppContainer({ user, project }: AppContainerProps) {
+export function AppContainer({ user, serverProjectId }: AppContainerProps) {
+  const queryClient = useQueryClient()
+  const router = useRouter()
   const apiKey = useAtomValue(apiKeyAtom)
   const projectId = useProjectId()
 
+  // Use serverProjectId if it exists (viewing existing project), otherwise use projectId (creating new project)
+  const activeProjectId = serverProjectId || projectId
+  const projectKey = getQueryKey(api.project.getProject, { projectId: activeProjectId }, 'query')
+
   // Local state to track whether to show ProjectContent (preserves state during transitions)
   const [isProjectMode, setIsProjectMode] = useState(() => {
-    // Initialize based on whether we have a project from server OR pathname indicates project route
-    return !!(project || projectId)
+    return !!serverProjectId
   })
 
-  const [currentProject, setCurrentProject] = useState<Project | null>(project || null)
+  const {
+    data: project,
+    isLoading: isLoadingProject,
+    isError: isErrorProject,
+  } = api.project.getProject.useQuery(
+    { projectId: serverProjectId },
+    {
+      enabled: !!serverProjectId,
+    }
+  )
 
   useEffect(() => {
-    if (project) {
-      setCurrentProject(project)
+    if (isErrorProject) {
+      toast.error(`Failed to load project ${serverProjectId}`)
+      router.push('/')
     }
-  }, [project])
+  }, [isErrorProject, router, serverProjectId])
 
   const [prompt, setPrompt] = useState('')
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     id: projectId,
-    messages: project?.messages || [],
     transport: new DefaultChatTransport({
       api: '/api/generate',
     }),
@@ -52,10 +69,10 @@ export function AppContainer({ user, project }: AppContainerProps) {
     onData: (dataPart) => {
       // Update project name in the UI once generated and it comes through in the stream.
       if (dataPart.type === 'data-project-name') {
-        setCurrentProject((prev) => {
-          if (!prev) return prev
+        queryClient.setQueryData<Project>(projectKey, (old) => {
+          if (!old) return old
           return {
-            ...prev,
+            ...old,
             name: dataPart.data as string,
             isNameGenerated: true,
           }
@@ -63,6 +80,12 @@ export function AppContainer({ user, project }: AppContainerProps) {
       }
     },
   })
+
+  useEffect(() => {
+    if (project) {
+      setMessages(project.messages)
+    }
+  }, [project, setMessages])
 
   const createProject = api.project.createProject.useMutation()
 
@@ -86,7 +109,7 @@ export function AppContainer({ user, project }: AppContainerProps) {
         error: 'Failed to create project',
       })
       .then(() => {
-        const newProject: Project = {
+        queryClient.setQueryData<Project>(projectKey, {
           id: projectId,
           name: 'New Project',
           isNameGenerated: false,
@@ -94,9 +117,7 @@ export function AppContainer({ user, project }: AppContainerProps) {
           createdAt: new Date(),
           updatedAt: new Date(),
           messages,
-        }
-
-        setCurrentProject(newProject)
+        })
         window.history.pushState(null, '', `/project/${projectId}`)
         setIsProjectMode(true)
 
@@ -135,16 +156,12 @@ export function AppContainer({ user, project }: AppContainerProps) {
     setPrompt('')
   }
 
-  // Show ProjectContent if we're in project mode and have a user
-  if (isProjectMode && user) {
-    if (!currentProject) {
-      // Fallback: if somehow we're in project mode but have no project, return to HomePage
-      return <HomePage user={user} prompt={prompt} setPrompt={setPrompt} handleSubmit={handleCreateNewProject} />
-    }
+  if (isProjectMode && user && !isErrorProject) {
     return (
       <ProjectContent
         user={user}
-        project={currentProject}
+        project={project}
+        isLoadingProject={isLoadingProject}
         prompt={prompt}
         setPrompt={setPrompt}
         messages={messages}

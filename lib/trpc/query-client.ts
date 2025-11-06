@@ -1,5 +1,5 @@
 import { defaultShouldDehydrateQuery, MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import SuperJSON from 'superjson'
 
 export const createQueryClient = () =>
@@ -21,7 +21,6 @@ export const createQueryClient = () =>
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        toast.error(error.message)
         console.error(error)
       },
     }),

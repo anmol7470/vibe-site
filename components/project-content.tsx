@@ -15,7 +15,8 @@ export type Project = NonNullable<RouterOutputs['project']['getProject']>
 
 type ProjectContentProps = {
   user: User
-  project: Project
+  project: Project | undefined
+  isLoadingProject: boolean
   prompt: string
   setPrompt: (prompt: string) => void
   messages: UIMessage[]
@@ -26,6 +27,7 @@ type ProjectContentProps = {
 export function ProjectContent({
   user,
   project,
+  isLoadingProject,
   prompt,
   setPrompt,
   messages,
@@ -37,7 +39,13 @@ export function ProjectContent({
 
   return (
     <main className="flex h-screen flex-col">
-      <ProjectHeader user={user} isCollapsed={isCollapsed} panelRef={panelRef} project={project} />
+      <ProjectHeader
+        user={user}
+        isCollapsed={isCollapsed}
+        panelRef={panelRef}
+        project={project}
+        isLoadingProject={isLoadingProject}
+      />
       <ResizablePanelGroup direction="horizontal" className="w-full flex-1">
         <ResizablePanel
           ref={panelRef}
@@ -49,7 +57,14 @@ export function ProjectContent({
           onExpand={() => setIsCollapsed(false)}
           className="hidden md:flex"
         >
-          <Chat prompt={prompt} setPrompt={setPrompt} handleSubmit={handleSubmit} messages={messages} status={status} />
+          <Chat
+            prompt={prompt}
+            setPrompt={setPrompt}
+            handleSubmit={handleSubmit}
+            messages={messages}
+            status={status}
+            isLoadingProject={isLoadingProject}
+          />
         </ResizablePanel>
         <ResizableHandle className="hidden md:flex" />
         <ResizablePanel defaultSize={70}>

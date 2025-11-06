@@ -19,10 +19,11 @@ type ProjectHeaderProps = {
   user: User
   isCollapsed: boolean
   panelRef: React.RefObject<ImperativePanelHandle | null>
-  project: Project
+  project: Project | undefined
+  isLoadingProject: boolean
 }
 
-export function ProjectHeader({ user, isCollapsed, panelRef, project }: ProjectHeaderProps) {
+export function ProjectHeader({ user, isCollapsed, panelRef, project, isLoadingProject }: ProjectHeaderProps) {
   return (
     <header className="flex h-12 w-full items-center justify-between px-2">
       <div className="flex items-center gap-2">
@@ -34,10 +35,10 @@ export function ProjectHeader({ user, isCollapsed, panelRef, project }: ProjectH
         <Link href="/" className="transition-opacity hover:opacity-80">
           <Image src="/logo.svg" alt="VibeSite" width={30} height={30} className="rounded-full" />
         </Link>
-        {project.isNameGenerated ? (
-          <span className="text-[14.5px] font-medium">{project.name}</span>
-        ) : (
+        {isLoadingProject || !project?.isNameGenerated ? (
           <Skeleton className="h-6 w-50" />
+        ) : (
+          <span className="text-[14.5px] font-medium">{project?.name}</span>
         )}
       </div>
 
