@@ -39,8 +39,6 @@ export async function POST(req: Request) {
 
   const { messages, projectId, isNewProject } = parsedBody.data
 
-  console.log('messages from body', messages)
-
   const apiKey = req.headers.get('x-api-key')
 
   if (!apiKey) {
@@ -56,13 +54,17 @@ export async function POST(req: Request) {
 
   const stream = createUIMessageStream<UIMessage>({
     execute: async ({ writer }) => {
-      // Generate project name and send to client if new project.
-      if (isNewProject) {
+      const userMessage = messages[0]
+      if (isNewProject && userMessage && userMessage.role === 'user') {
+        // Create new chat in the database. Awaited to make it exist in the database before other operations
+        await api.project.createProject({ newProjectId: projectId, userMessage })
+
+        // Generate project name and send to client if new project.
         api.project
           .generateProjectName({
             projectId,
             apiKey,
-            userMessage: messages[0],
+            userMessage,
           })
           .then((name) => {
             writer.write({
@@ -87,7 +89,6 @@ export async function POST(req: Request) {
           originalMessages: messages,
           generateMessageId: () => generateId(),
           onFinish: async ({ messages }) => {
-            console.log('messages from onFinish', messages)
             await api.project.saveMessages({ projectId, messages })
           },
         })

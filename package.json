@@ -20,6 +20,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.0-beta.47",
     "@ai-sdk/react": "^3.0.0-beta.88",
+    "@e2b/code-interpreter": "^2.2.0",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -38,6 +39,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.7",
+    "e2b": "^2.6.3",
     "jotai": "^2.15.0",
     "lucide-react": "^0.552.0",
     "nanoid": "^5.1.6",

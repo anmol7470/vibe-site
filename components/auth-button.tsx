@@ -6,7 +6,7 @@ import { KeyIcon, LogOutIcon, MonitorIcon, MoonIcon, SunIcon, SunMoonIcon } from
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { ApiKeyDialog } from './api-key-dialog'
 import { Button } from './ui/button'
@@ -25,14 +25,27 @@ import {
 export function AuthButton({ user }: { user: User | undefined }) {
   const router = useRouter()
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) return null
 
   if (user) {
     return (
       <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Image src={user.image || ''} alt={user.name || 'User'} width={30} height={30} className="rounded-full" />
+            <Image
+              src={user.image || ''}
+              alt={user.name || 'User'}
+              width={30}
+              height={30}
+              className="cursor-pointer rounded-full"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>

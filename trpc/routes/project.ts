@@ -4,7 +4,6 @@ import { createAnthropic } from '@ai-sdk/anthropic'
 import type { UIMessage } from 'ai'
 import { convertToModelMessages, generateText } from 'ai'
 import { and, eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '../init'
 
@@ -13,7 +12,7 @@ export const projectRouter = createTRPCRouter({
     .input(
       z.object({
         newProjectId: z.string().min(1),
-        prompt: z.string().min(1),
+        userMessage: z.custom<UIMessage>(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -24,10 +23,10 @@ export const projectRouter = createTRPCRouter({
       })
 
       await ctx.db.insert(projectMessagesTable).values({
-        id: nanoid(),
         projectId: input.newProjectId,
-        role: 'user',
-        parts: [{ type: 'text', text: input.prompt }],
+        id: input.userMessage.id,
+        role: input.userMessage.role,
+        parts: input.userMessage.parts,
       })
     }),
 

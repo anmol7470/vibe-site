@@ -67,6 +67,12 @@ export function AppContainer({ user, serverProjectId }: AppContainerProps) {
       toast.error(errorData.error || error.message)
     },
     onData: (dataPart) => {
+      console.log('dataPart', dataPart)
+      console.log('projectKey', projectKey)
+      console.log('projectId', projectId)
+      console.log('serverProjectId', serverProjectId)
+      console.log('activeProjectId', activeProjectId)
+
       // Update project name in the UI once generated and it comes through in the stream.
       if (dataPart.type === 'data-project-name') {
         queryClient.setQueryData<Project>(projectKey, (old) => {
@@ -87,8 +93,6 @@ export function AppContainer({ user, serverProjectId }: AppContainerProps) {
     }
   }, [project, setMessages])
 
-  const createProject = api.project.createProject.useMutation()
-
   const handleCreateNewProject = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -102,45 +106,39 @@ export function AppContainer({ user, serverProjectId }: AppContainerProps) {
       return
     }
 
-    toast
-      .promise(createProject.mutateAsync({ newProjectId: projectId, prompt }), {
-        loading: 'Creating project...',
-        success: 'Project created successfully',
-        error: 'Failed to create project',
-      })
-      .then(() => {
-        queryClient.setQueryData<Project>(projectKey, {
-          id: projectId,
-          name: 'New Project',
-          isNameGenerated: false,
-          userId: user?.id || '',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          messages,
-        })
-        window.history.pushState(null, '', `/project/${projectId}`)
-        setIsProjectMode(true)
+    // Set query cache
+    queryClient.setQueryData<Project>(projectKey, {
+      id: projectId,
+      name: 'New Project',
+      isNameGenerated: false,
+      userId: user?.id || '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      messages,
+    })
+    window.history.pushState(null, '', `/project/${projectId}`)
+    setIsProjectMode(true)
 
-        sendMessage(
-          {
-            text: prompt,
-          },
-          {
-            body: {
-              projectId,
-              isNewProject: true,
-            },
-            headers: {
-              'x-api-key': apiKey,
-            },
-          }
-        )
-        setPrompt('')
-      })
+    sendMessage(
+      {
+        text: prompt,
+      },
+      {
+        body: {
+          projectId,
+          isNewProject: true,
+        },
+        headers: {
+          'x-api-key': apiKey,
+        },
+      }
+    )
+    setPrompt('')
   }
 
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     sendMessage(
       { text: prompt },
       {
